@@ -2,8 +2,7 @@
 {
     public interface IMetalPriceService
     {
-        Task<List<IMetalPrice>> GetMetalPrices(string metal);
-        Task StoreMetalPricesInDatabase(string metal, List<IMetalPrice> metalPrices);
-        Task UpdateLatestMetalPrice(string metal, decimal price);
+        IAsyncEnumerable<T> GetMetalPrices<T>(string metal) where T: IMetalPrice, new();
+        Task StoreMetalPricesInDatabase<T>(IAsyncEnumerable<T> metalPrices) where T: class, IMetalPrice;
     }
 }

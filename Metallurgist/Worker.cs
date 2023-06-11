@@ -1,4 +1,5 @@
 using Metallurgist.Interfaces;
+using Metallurgist.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Metallurgist
@@ -6,41 +7,26 @@ namespace Metallurgist
     public class Worker : BackgroundService
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly ILogger<Worker> _logger;
+        //private readonly ILogger<Worker> _logger;
         private readonly IMetalPriceService _metalPriceService;
 
-        /*public Worker(ILogger<Worker> logger, IMetalPriceService metalPriceService)
-        {
-            _logger = logger;
-            _metalPriceService = metalPriceService;
-        }
-        */
-
-        public Worker(IServiceScopeFactory serviceScopeFactory)
+        public Worker(IMetalPriceService metalPriceService, IServiceScopeFactory serviceScopeFactory)
         {
             _serviceScopeFactory = serviceScopeFactory;
+            _metalPriceService = metalPriceService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                // create a scope for the scoped service
-                using (var scope = _serviceScopeFactory.CreateScope())
-                {
-                    // get the scoped service from the scope
-                    var metalPriceService = scope.ServiceProvider.GetRequiredService<IMetalPriceService>();
+                IAsyncEnumerable<IronPrice> ironPrices = _metalPriceService.GetMetalPrices<IronPrice>("iron");
+                IAsyncEnumerable<CopperPrice> copperPrices = _metalPriceService.GetMetalPrices<CopperPrice>("copper");
+                IAsyncEnumerable<AluminumPrice> aluminumPrices = _metalPriceService.GetMetalPrices<AluminumPrice>("aluminum");
 
-                    // use the scoped service here
-                    var metals = new[] { "copper", "aluminum", "iron" };
-
-                    foreach (var metal in metals)
-                    {
-                        var prices = await metalPriceService.GetMetalPrices(metal);
-                        await metalPriceService.StoreMetalPricesInDatabase(prices);
-                        await metalPriceService.UpdateLatestMetalPrice(metal, prices);
-                    }
-                }
+                await _metalPriceService.StoreMetalPricesInDatabase(ironPrices);
+                await _metalPriceService.StoreMetalPricesInDatabase(copperPrices);
+                await _metalPriceService.StoreMetalPricesInDatabase(aluminumPrices);
 
                 await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
             }
