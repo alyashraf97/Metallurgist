@@ -2,8 +2,8 @@
 {
     public interface IMetalPriceService
     {
-        Task<decimal> GetMetalPrice(string metal);
-        Task StoreMetalPricesInDatabase(string metal, IMetalPrice[] metalPrices);
+        Task<List<IMetalPrice>> GetMetalPrices(string metal);
+        Task StoreMetalPricesInDatabase(string metal, List<IMetalPrice> metalPrices);
         Task UpdateLatestMetalPrice(string metal, decimal price);
     }
 }

@@ -16,8 +16,8 @@ namespace Metallurgist
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddHttpClient();
-                    services.AddDbContext<MetalPriceDbContextBase, MetalPriceDbContext>();
-                    services.AddScoped<IMetalPriceService, MetalPriceService>();
+                    services.AddSingleton<MetalPriceDbContextBase, MetalPriceDbContext>();
+                    services.AddSingleton<IMetalPriceService, MetalPriceService>();
                     services.AddHostedService<Worker>();
                 });
     }

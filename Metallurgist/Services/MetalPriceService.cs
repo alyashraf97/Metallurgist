@@ -1,5 +1,6 @@
 ﻿using Metallurgist.Interfaces;
 using Metallurgist.Models;
+using System.Collections.Generic;
 using System.Text.Json;
 
 namespace Metallurgist.Services
@@ -15,7 +16,7 @@ namespace Metallurgist.Services
             _dbContext = dbContext;
         }
 
-        public async Task<decimal> GetMetalPrice(string metal)
+        public async Task<List<IMetalPrice>> GetMetalPrices(string metal)
         {
             var httpClient = _httpClientFactory.CreateClient();
             var url = $"https://api.metals.live/v1/spot/{metal}";
@@ -24,13 +25,15 @@ namespace Metallurgist.Services
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync();
-            var data = JsonSerializer.Deserialize<JsonElement>(json);
+            //var data = JsonSerializer.Deserialize<IDictionary<decimal, long>>(json);
 
-            decimal price = data.GetProperty("price").GetDecimal();
-            return price;
+            //decimal price = data.GetProperty("price").GetDecimal();
+            //return price;
+            var priceList = await ObjectifyJson(json);
+            return priceList;
         }
 
-        public async Task StoreMetalPricesInDatabase(string metal, IMetalPrice[] metalPrices)
+        public async Task StoreMetalPricesInDatabase(string metal,List<IMetalPrice> metalPrices)
         {
             switch (metal)
             {
@@ -46,7 +49,7 @@ namespace Metallurgist.Services
             }
         }
 
-        private async Task StorePricesInDatabase<T>(IMetalPrice[] metalPrices) where T : class, IMetalPrice
+        private async Task StorePricesInDatabase<T>(List<IMetalPrice> metalPrices) where T : class, IMetalPrice
         {
             var existingTimestamps = _dbContext.Set<T>().Select(p => p.Timestamp).ToList();
 
@@ -82,6 +85,12 @@ namespace Metallurgist.Services
 
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task<List<IMetalPrice>> ObjectifyJson(string metalPrices)
+        {
+
+        }
+
     }
 
     public static class MetalPriceFactory
@@ -106,4 +115,6 @@ namespace Metallurgist.Services
             }
         }
     }
+
+    
 }
