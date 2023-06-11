@@ -86,9 +86,38 @@ namespace Metallurgist.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<List<IMetalPrice>> ObjectifyJson(string metalPrices)
+        public async Task<List<IMetalPrice>> ObjectifyJson(string json)
         {
 
+            // Create a list to store the results
+            var metalPrices = new List<IMetalPrice>();
+
+            // Deserialize the json string into an array of anonymous objects
+            var data = JsonSerializer.Deserialize<dynamic[]>(json);
+
+            // Loop through each object in the array
+            foreach (var item in data)
+            {
+                // Get the price and timestamp values from the object
+                var price = decimal.Parse(item.price.ToString());
+                var timestamp = long.Parse(item.timestamp.ToString());
+
+                // Convert the timestamp from milliseconds to DateTime
+                var date = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).DateTime;
+
+                // Create a new IMetalPrice instance and set its properties
+                var metalPrice = new IMetalPrice
+                {
+                    Price = price,
+                    Timestamp = date
+                };
+
+                // Add the instance to the list
+                metalPrices.Add(metalPrice);
+            }
+
+            // Return the list
+            return metalPrices;
         }
 
     }
